@@ -1,0 +1,111 @@
+# PE Deal Recommender Configuration
+# =================================
+# This file contains default configuration values.
+# Override specific values via environment variables (RECSYS_ prefix) or .env file.
+
+# Core Settings
+environment: local  # local, dev, staging, prod
+project_name: pe-deal-recommender
+storage_backend: local  # local, s3
+compute_backend: local  # local, ray
+
+# Paths (for local storage)
+base_dir: .
+data_dir: data
+models_dir: models
+logs_dir: logs
+
+# AWS Settings (used when storage_backend: s3)
+aws_region: us-east-1
+s3_bucket: pe-recommender-bucket
+s3_data_prefix: data/
+s3_models_prefix: models/
+
+# Ray Settings (used when compute_backend: ray)
+ray_address: null  # null = start local cluster, or "auto" for existing cluster
+ray_namespace: pe-recommender
+
+# Data Configuration
+data:
+  n_investors: 125
+  n_deals: 1000
+  negative_samples: 4
+  pairwise_pairs_per_positive: 5
+  test_size: 0.2
+  val_size: 0.1
+  interactions_file: enhanced_interactions.csv
+  investor_features_file: investor_features.csv
+  deal_features_file: deal_features.csv
+
+# Two-Tower Model Configuration
+two_tower:
+  embedding_dim: 64
+  tower_hidden_dims: [128, 64]
+  temperature: 0.1
+  dropout_rate: 0.2
+  l2_normalize: true
+
+# Deep Ranking Model Configuration
+deep_ranking:
+  hidden_dims: [256, 128, 64]
+  dropout_rate: 0.3
+  use_batch_norm: true
+
+# Training Configuration
+training:
+  batch_size: 128
+  learning_rate: 0.001
+  weight_decay: 0.0
+  max_epochs: 30
+  early_stopping_patience: 5
+  early_stopping_min_delta: 0.001
+  save_top_k: 3
+  checkpoint_monitor: val_loss
+  checkpoint_mode: min
+  num_workers: 4
+  accelerator: auto
+  devices: auto
+  precision: "32"
+  log_every_n_steps: 50
+
+# Ray Training Configuration
+ray_training:
+  num_workers: 2
+  use_gpu: true
+  resources_per_worker:
+    CPU: 4
+    GPU: 1
+  num_samples: 10
+  max_concurrent_trials: 2
+  asha_max_t: 30
+  asha_grace_period: 5
+  asha_reduction_factor: 2
+
+# Inference Configuration
+inference:
+  retrieval_k: 100
+  final_k: 10
+  batch_size: 256
+  faiss_index_type: FlatIP
+  faiss_nprobe: 10
+
+# Serving Configuration
+serving:
+  retriever_replicas: 2
+  ranker_replicas: 2
+  retriever_num_cpus: 2.0
+  retriever_num_gpus: 0.5
+  ranker_num_cpus: 2.0
+  ranker_num_gpus: 0.5
+  host: "0.0.0.0"
+  port: 8000
+  health_check_period_s: 10.0
+  health_check_timeout_s: 30.0
+
+# Feature Dimensions (auto-populated from data, but can override)
+feature_dims:
+  n_investor_types: 3
+  n_regions: 4
+  n_risk_profiles: 3
+  n_sectors: 5
+  n_stages: 5
